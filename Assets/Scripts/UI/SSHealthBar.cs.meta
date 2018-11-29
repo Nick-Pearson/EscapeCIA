@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3db61cbe1b3672e41ac984428c4a9873
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - HeartIconFull: {fileID: 2800000, guid: 6266d2e1d84c601459c70f67af919f94, type: 3}
+  - HeartIconHalf: {fileID: 2800000, guid: 178c8d80e1690824aae9253351a5fa90, type: 3}
+  - HeartIconEmpty: {fileID: 2800000, guid: ec4f9464708fb9c4f93cf747cdcf0ad1, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
