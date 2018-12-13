@@ -13,6 +13,12 @@ public class LevelDesignerEditor : Editor
       if(GUILayout.Button("Generate Level"))
       {
           designer.GenerateLevel();
+
+          Mesh mesh = designer.gameObject.GetComponent<MeshFilter>().sharedMesh;
+          if(mesh)
+          {
+            Unwrapping.GenerateSecondaryUVSet(mesh);
+          }
       };
   }
 
