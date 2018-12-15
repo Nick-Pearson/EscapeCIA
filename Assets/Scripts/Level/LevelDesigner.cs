@@ -20,6 +20,9 @@ public class LevelDesigner : MonoBehaviour
   private Tile[] tiles;
 
   [SerializeField]
+  Material ceilingMaterial;
+
+  [SerializeField]
   LevelTextureSet[] TextureSets;
 
   [SerializeField]
@@ -42,7 +45,7 @@ public class LevelDesigner : MonoBehaviour
     // TODO: pre-allocate the lists using the tile info
     List<Vector3> Verts = new List<Vector3>(10);
 
-    int submeshCount = TextureSets.Length * 2;
+    int submeshCount = (TextureSets.Length * 2) + 1;
     List<int>[] Submeshes = new List<int>[submeshCount];
 
     for(int i = 0; i < submeshCount; i++)
@@ -57,13 +60,15 @@ public class LevelDesigner : MonoBehaviour
       // index of the first vert in this area
       int baseVertIDX = Verts.Count;
 
-      GenerateFloor(tiles[i].Size.x, tiles[i].Size.y, tiles[i].Offset, ref Verts, ref Submeshes[tiles[i].TextureSet * 2], ref UVs);
+      GenerateFloor(tiles[i].Size.x, tiles[i].Size.y, 0.0f, tiles[i].Offset, ref Verts, ref Submeshes[tiles[i].TextureSet * 2], ref UVs);
 
       GenerateWalls(tiles[i].Size.y,tiles[i].Size.y, 0              , tiles[i].Offset, baseVertIDX, ref Verts, ref Submeshes[(tiles[i].TextureSet * 2) + 1], ref UVs, false, true);
       GenerateWalls(tiles[i].Size.y,tiles[i].Size.y, tiles[i].Size.x, tiles[i].Offset, baseVertIDX, ref Verts, ref Submeshes[(tiles[i].TextureSet * 2) + 1], ref UVs, false, false);
 
       GenerateWalls(tiles[i].Size.x, tiles[i].Size.y, tiles[i].Size.y, tiles[i].Offset, baseVertIDX, ref Verts, ref Submeshes[(tiles[i].TextureSet * 2) + 1], ref UVs, true, true);
       GenerateWalls(tiles[i].Size.x, tiles[i].Size.y, 0              , tiles[i].Offset, baseVertIDX, ref Verts, ref Submeshes[(tiles[i].TextureSet * 2) + 1], ref UVs, true, false);
+
+      GenerateFloor(tiles[i].Size.x, tiles[i].Size.y, WallHeight, tiles[i].Offset, ref Verts, ref Submeshes[submeshCount-1], ref UVs, true);
     }
 
     MeshFilter filter = GetComponent<MeshFilter>();
@@ -101,11 +106,12 @@ public class LevelDesigner : MonoBehaviour
       mats[2 * i] = TextureSets[i].floorMaterial;
       mats[(2 * i) + 1] = TextureSets[i].wallMaterial;
     }
+    mats[submeshCount-1] = ceilingMaterial;
 
     meshRenderer.sharedMaterials = mats;
   }
 
-  private void GenerateFloor(int sizeX, int sizeY, Vector2Int offset, ref List<Vector3> Verts, ref List<int> Tris, ref List<Vector2> UVs)
+  private void GenerateFloor(int sizeX, int sizeY, float zOffset, Vector2Int offset, ref List<Vector3> Verts, ref List<int> Tris, ref List<Vector2> UVs, bool FlipFlace = false)
   {
     for(int x = 0; x <= sizeX; x++)
     {
@@ -115,16 +121,16 @@ public class LevelDesigner : MonoBehaviour
         {
           int idx  = Verts.Count;
 
-          Tris.Add(idx);
-          Tris.Add(idx - 1);
+          Tris.Add(idx - (FlipFlace ? 1 : 0));
+          Tris.Add(idx - (FlipFlace ? 0 : 1));
           Tris.Add(idx - sizeY - 1);
 
-          Tris.Add(idx - sizeY - 1);
+          Tris.Add(idx - sizeY - (FlipFlace ? 2 : 1));
           Tris.Add(idx - 1);
-          Tris.Add(idx - sizeY - 2);
+          Tris.Add(idx - sizeY - (FlipFlace ? 1 : 2));
         }
 
-        Verts.Add(new Vector3((x + offset.x) * TileWidth, 0.0f, (y + offset.y) * TileWidth));
+        Verts.Add(new Vector3((x + offset.x) * TileWidth, zOffset, (y + offset.y) * TileWidth));
         UVs.Add(new Vector2(x, y));
       }
     }

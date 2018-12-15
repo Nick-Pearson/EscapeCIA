@@ -65,6 +65,7 @@
      <Compile Include="Assets\Scripts\UI\SSHealthBar.cs" />
      <Compile Include="Assets\Scripts\UI\UIManager.cs" />
      <Compile Include="Assets\Scripts\Utils\FadeInAudio.cs" />
+     <Compile Include="Assets\Scripts\Utils\ObjectSpinner.cs" />
      <Compile Include="Assets\Scripts\Utils\TimedObjectDestroy.cs" />
      <Compile Include="Assets\Scripts\Weapons\AmmoCrateLogic.cs" />
      <Compile Include="Assets\Scripts\Weapons\BulletLogic.cs" />
