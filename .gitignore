@@ -4,3 +4,6 @@ Library/
 Source/
 Build/
 *.log
+*.sln
+*.csproj
+obj/
