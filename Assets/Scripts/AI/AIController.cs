@@ -1,76 +1,67 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.AI;
 
-public class AIController : MonoBehaviour
+public enum AlertStates
 {
+    // Normal activity, no knowledge of a player
+    Unaware,
+
+    // Previously had some stimulus and is following it
+    Tracking,
+
+    // Can currently see the player
+    Found
+}
+
+[RequireComponent(typeof(NavMeshAgent))]
+public class AIController : ControllerBase
+{
+
+    public AlertStates m_AlertState;
+
     // --------------------------------------------------------------
 
-    // The character's running speed
-    [SerializeField]
-    float m_MovementSpeed = 4.0f;
+    [System.Serializable]
+    public struct Waypoint
+    { 
+        // World Space position
+        public Vector3 Position;
 
-    // The gravity strength
-    [SerializeField]
-    float m_Gravity = 60.0f;
+        // How long we wait at this waypoint before moving on
+        public float Delay;
+    }
 
-    // The maximum speed the character can fall
-    [SerializeField]
-    float m_MaxFallSpeed = 20.0f;
+    public Waypoint[] Patrol;
+
+    // which waypoint we are currently travelling to
+    private int m_CurWaypoint = -1;
 
     // --------------------------------------------------------------
-
-    // The charactercontroller of the player
-    CharacterController m_CharacterController;
 
     // The current movement direction in x & z.
     Vector3 m_MovementDirection = Vector3.zero;
-
-    // The current vertical / falling speed
-    float m_VerticalSpeed = 0.0f;
-
-    // The current movement offset
-    Vector3 m_CurrentMovementOffset = Vector3.zero;
-
+    
     // Whether the player is alive or not
     bool m_IsAlive = true;
+    
+    NavMeshAgent m_Agent;
 
-    PlayerController m_PlayerController;
-    Transform m_PlayerTransform;
-
-    private Health m_Health;
+    BehaviourTree m_Behaviour;
 
     // --------------------------------------------------------------
-
-    void Awake()
-    {
-        m_CharacterController = GetComponent<CharacterController>();
-    }
-
     // Use this for initialization
-    void Start()
+    protected override void InitController()
     {
-        // Get Player information
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if(player)
-        {
-            m_PlayerController = player.GetComponent<PlayerController>();
-            m_PlayerTransform = player.transform;
-        }
-    }
+        m_Agent = GetComponent<NavMeshAgent>();
 
-    void ApplyGravity()
-    {
-        // Apply gravity
-        m_VerticalSpeed -= m_Gravity * Time.deltaTime;
+        m_Behaviour = GetComponent<BehaviourTree>();
+        m_Behaviour.SetupTree();
 
-        // Make sure we don't fall any faster than m_MaxFallSpeed.
-        m_VerticalSpeed = Mathf.Max(m_VerticalSpeed, -m_MaxFallSpeed);
-        m_VerticalSpeed = Mathf.Min(m_VerticalSpeed, m_MaxFallSpeed);
+        m_AlertState = AlertStates.Unaware;
     }
 
     // Update is called once per frame
-    void Update()
+    protected override void UpdateController()
     {
         // If the player is dead update the respawn timer and exit update loop
         if (!m_IsAlive)
@@ -78,15 +69,15 @@ public class AIController : MonoBehaviour
             return;
         }
 
-        float distance = Vector3.Distance(m_PlayerTransform.position, transform.position);
+        UpdateSenses();
 
-        // Aggro range
-        if (distance < 15.0f)
-        {
-            m_MovementDirection = m_PlayerTransform.position - transform.position;
-            m_MovementDirection.Normalize();
-        }
+        m_Behaviour.data["AlertState"] = m_AlertState;
 
+        SetRunning(m_AlertState == AlertStates.Found);
+
+        m_Behaviour.TickTree(Time.deltaTime);
+
+        /*
         // Attack range
         if(distance < 2.0f)
         {
@@ -96,26 +87,41 @@ public class AIController : MonoBehaviour
 
         //Debug.Log(distance);
 
-        // Update jumping input and apply gravity
-        ApplyGravity();
-
         // Calculate actual motion
-        m_CurrentMovementOffset = (m_MovementDirection * m_MovementSpeed + new Vector3(0, m_VerticalSpeed, 0)) * Time.deltaTime;
+        Vector3 currentMovement = (m_MovementDirection * m_MovementSpeed + new Vector3(0, VerticalSpeed, 0)) * Time.deltaTime;
 
         // Move character
-        m_CharacterController.Move(m_CurrentMovementOffset);
+        CharacterController.Move(currentMovement);
 
         // Rotate the character in movement direction
         if(m_MovementDirection != Vector3.zero)
         {
             RotateCharacter(m_MovementDirection);
-        }
+        }*/
     }
 
-    float AngleBetweenTwoPoints(Vector3 a, Vector3 b)
+    void UpdateSenses()
     {
-        return Mathf.Atan2(a.y - b.y, a.x - b.x) * Mathf.Rad2Deg;
+    // loop through our current stimuli and update the alert level
     }
+
+    void NewWaypoint()
+    {
+        m_CurWaypoint = (m_CurWaypoint + 1) % Patrol.Length;
+
+        Vector3 position = transform.position;
+        float delay = 1.0f;
+
+        if(Patrol.Length != 0)
+        {
+            position = Patrol[m_CurWaypoint].Position;
+            delay = Patrol[m_CurWaypoint].Delay;
+        }
+
+        m_Behaviour.data["Waypoint"] = position;
+        m_Behaviour.data["Delay"] = delay;
+    }
+    
 
     void RotateCharacter(Vector3 movementDirection)
     {
