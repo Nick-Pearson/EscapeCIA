@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.AI;
 
 public enum AlertStates
@@ -48,6 +49,9 @@ public class AIController : ControllerBase
 
     BehaviourTree m_Behaviour;
 
+    AIManager m_AIManager;
+    GameObject m_Player;
+
     // --------------------------------------------------------------
     // Use this for initialization
     protected override void InitController()
@@ -56,6 +60,13 @@ public class AIController : ControllerBase
 
         m_Behaviour = GetComponent<BehaviourTree>();
         m_Behaviour.SetupTree();
+
+        GameObject AIManager = GameObject.FindWithTag("AIManager");
+        m_AIManager = AIManager.GetComponent<AIManager>();
+
+        m_AIManager.OnStimuliChanged += UpdateSenses;
+
+        m_Player = GameObject.FindWithTag("Player");
 
         m_AlertState = AlertStates.Unaware;
     }
@@ -71,8 +82,6 @@ public class AIController : ControllerBase
 
         UpdateSenses();
 
-        m_Behaviour.data["AlertState"] = m_AlertState;
-
         SetRunning(m_AlertState == AlertStates.Found);
 
         m_Behaviour.TickTree(Time.deltaTime);
@@ -86,23 +95,27 @@ public class AIController : ControllerBase
         }
 
         //Debug.Log(distance);
-
-        // Calculate actual motion
-        Vector3 currentMovement = (m_MovementDirection * m_MovementSpeed + new Vector3(0, VerticalSpeed, 0)) * Time.deltaTime;
-
-        // Move character
-        CharacterController.Move(currentMovement);
-
-        // Rotate the character in movement direction
-        if(m_MovementDirection != Vector3.zero)
-        {
-            RotateCharacter(m_MovementDirection);
-        }*/
+        */
     }
 
     void UpdateSenses()
     {
-    // loop through our current stimuli and update the alert level
+        // loop through our current stimuli and update the alert level
+        AlertStates NewState = AlertStates.Unaware;
+
+        List<Stimuli> Stimuli = m_AIManager.GetAllStimulusFor(transform.position);
+
+        
+
+        SetAlertState(NewState);
+    }
+
+    void SetAlertState(AlertStates NewState)
+    {
+        if (NewState != m_AlertState) return;
+
+        m_AlertState = NewState;
+        m_Behaviour.data["AlertState"] = m_AlertState;
     }
 
     void NewWaypoint()

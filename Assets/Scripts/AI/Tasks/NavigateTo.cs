@@ -21,7 +21,7 @@ public class NavigateTo : Task
         toWaypoint.y = 0.0f;
 
         float distanceToWaypoint = toWaypoint.sqrMagnitude;
-        if(distanceToWaypoint < 1.0f)
+        if(distanceToWaypoint < 0.2f)
         {
             MarkCompleted(true);
         }
@@ -32,7 +32,7 @@ public class NavigateTo : Task
         if(m_Agent == null || m_Transform == null)
         {
             GameObject Owner = (GameObject)data["owner"];
-            if(Owner == null)
+            if (Owner == null)
             {
                 Debug.LogError("Owner not set on behavior tree");
                 MarkCompleted(false);

@@ -1,9 +1,10 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Task
 {
-    private bool m_Completed;
+    private bool m_Completed = true;
     public bool Completed
     {
         get { return m_Completed; }
@@ -16,11 +17,22 @@ public abstract class Task
     }
 
     public int i;
-    
+    List<Service> services;
+
+    public Task()
+    {
+        services = new List<Service>();
+    }
+
     public void Start(ref Hashtable data)
     {
         m_Successful = false;
         m_Completed = false;
+
+        for(int i = 0; i < services.Count; ++i)
+        {
+            services[i].RunService(ref data);
+        }
 
         OnTaskStarted(ref data);
     }
@@ -32,5 +44,10 @@ public abstract class Task
     {
         m_Completed = true;
         m_Successful = success;
+    }
+
+    public void AddService(Service service)
+    {
+        services.Add(service);
     }
 }

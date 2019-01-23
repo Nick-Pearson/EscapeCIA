@@ -12,16 +12,14 @@ public abstract class BehaviourTree : MonoBehaviour
     protected void Awake()
     {
         data = new Hashtable();
-        started = false;
     }
 
     public void TickTree(float deltaTime)
     {
         if (root == null) return;
 
-        if (root.Completed || !started)
+        if (root.Completed)
         {
-            started = true;
             root.Start(ref data);
         }
 
@@ -32,5 +30,4 @@ public abstract class BehaviourTree : MonoBehaviour
 
     public Hashtable data;
     protected Task root;
-    bool started;
 }

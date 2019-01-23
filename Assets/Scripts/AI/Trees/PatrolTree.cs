@@ -30,6 +30,7 @@ public class PatrolTree : BehaviourTree
         Sequence rootSeq = new Sequence();
 
         rootSeq.AddTask(new SendMessage("NewWaypoint"));
+        rootSeq.AddTask(new RotateTowards("Waypoint"));
         rootSeq.AddTask(new NavigateTo("Waypoint"));
         rootSeq.AddTask(new WaitTask("Delay"));
 
@@ -38,7 +39,23 @@ public class PatrolTree : BehaviourTree
 
     Task SearchBehaviour()
     {
-        return new WaitTask(1.0f);
+        NavigateTo navTask = new NavigateTo("RandLocation");
+        navTask.AddService(new GenerateRandomLoaction("RandLocation", "SearchLocation", 8.0f));
+
+        Sequence mainSeq = new Sequence();
+        mainSeq.AddTask(navTask);
+        mainSeq.AddTask(new WaitTask(1.5f));
+
+        Sequence rootSeq = new Sequence();
+        rootSeq.AddTask(new WaitTask(1.0f));
+        rootSeq.AddTask(new SendMessage("SetRunning"));
+        rootSeq.AddTask(new NavigateTo("SearchLocation"));
+        rootSeq.AddTask(new SendMessage("SetWalking"));
+        rootSeq.AddTask(new WaitTask(1.5f));
+        rootSeq.AddTask(new Repeat(mainSeq, 3));
+
+        return rootSeq;
+
     }
 
     Task FightBehaviour()
