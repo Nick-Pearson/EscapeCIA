@@ -20,6 +20,7 @@ public class Health : MonoBehaviour
     public delegate void Died();
     public event Died OnDied;
 
+    [HideInInspector]
     public GameObject UIListener;
 
     public void Awake()
@@ -29,6 +30,8 @@ public class Health : MonoBehaviour
 
     public void ModifyHealth(int change)
     {
+        if (change == 0) return;
+
         m_CurHealth += change;
         m_CurHealth = Mathf.Clamp(m_CurHealth, 0, MaxHealth);
 

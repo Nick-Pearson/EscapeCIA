@@ -16,6 +16,12 @@ public abstract class Task
         get { return m_Successful; }
     }
 
+    private bool m_Aborted;
+    public bool Aborted
+    {
+        get { return m_Aborted; }
+    }
+
     public int i;
     List<Service> services;
 
@@ -28,8 +34,9 @@ public abstract class Task
     {
         m_Successful = false;
         m_Completed = false;
+        m_Aborted = false;
 
-        for(int i = 0; i < services.Count; ++i)
+        for (int i = 0; i < services.Count; ++i)
         {
             services[i].RunService(ref data);
         }
@@ -44,6 +51,17 @@ public abstract class Task
     {
         m_Completed = true;
         m_Successful = success;
+    }
+
+    public void Abort()
+    {
+        m_Aborted = true;
+        OnTaskAborted();
+    }
+
+    protected virtual void OnTaskAborted()
+    {
+        MarkCompleted(false);
     }
 
     public void AddService(Service service)

@@ -36,14 +36,21 @@ public class Sequence : Task
 
         if (!task.Completed)
         {
-            task.UpdateTask(deltaTime, ref data);
+            bool decoratorsValid = DecoratorsTrue(m_CurTask, ref data);
+
+            if (!decoratorsValid)
+                task.Abort();
+
+
+            if (!task.Completed)
+                task.UpdateTask(deltaTime, ref data);
         }
 
         if (task.Completed)
         {
-            if(IsSelector)
+            if(IsSelector || Aborted)
             {
-                MarkCompleted(task.Successful);
+                MarkCompleted(task.Successful && !Aborted);
             }
             else
             {
@@ -106,5 +113,10 @@ public class Sequence : Task
         node.decorators = decorators;
 
         Subtasks.Add(node);
+    }
+
+    protected override void OnTaskAborted()
+    {
+        Subtasks[m_CurTask].task.Abort();
     }
 }

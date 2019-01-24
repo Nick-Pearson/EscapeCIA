@@ -12,6 +12,8 @@ public abstract class BehaviourTree : MonoBehaviour
     protected void Awake()
     {
         data = new Hashtable();
+
+        data["owner"] = gameObject;
     }
 
     public void TickTree(float deltaTime)
@@ -22,8 +24,10 @@ public abstract class BehaviourTree : MonoBehaviour
         {
             root.Start(ref data);
         }
-
-        root.UpdateTask(deltaTime, ref data);
+        else
+        {
+            root.UpdateTask(deltaTime, ref data);
+        }
     }
 
     public abstract void SetupTree();

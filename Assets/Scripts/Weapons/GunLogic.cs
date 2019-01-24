@@ -4,67 +4,62 @@ using UnityEngine;
 
 public class GunLogic : MonoBehaviour
 {
+    public string DisplayName;
+
     // The Bullet Prefab
     [SerializeField]
-    GameObject m_BulletPrefab;
-
-    // The Explosive Bullet Prefab
-    [SerializeField]
-    GameObject m_ExplosiveBulletPrefab;
+    public GameObject ProjectilePrefab;
 
     // The Bullet Spawn Point
     [SerializeField]
     Transform m_BulletSpawnPoint;
 
-    // The Bullet Spawn Point
+    // bullet on the gun model, so it can be hidden during reloading
     [SerializeField]
-    float m_ShotCooldown = 0.5f;
+    GameObject m_ProjectileModel;
+
+    public float TimeBetweenShots = 0.5f;
+    float m_ShotCooldown;
 
     bool m_CanShoot = true;
 
     // VFX
-    [SerializeField]
-    ParticleSystem m_Flare;
-
-    [SerializeField]
-    ParticleSystem m_Smoke;
-
-    [SerializeField]
-    ParticleSystem m_Sparks;
+    public ParticleSystem[] Particles;
 
     // SFX
-    [SerializeField]
-    AudioClip m_BulletShot;
-
-    [SerializeField]
-    AudioClip m_GrenadeLaunched;
+    public AudioClip ShootSound;
 
     // The AudioSource to play Sounds for this object
     AudioSource m_AudioSource;
 
-    [SerializeField]
-    int m_BulletAmmo = 100;
+    public int AmmoPerClip;
 
-    [SerializeField]
-    int m_GrenadeAmmo = 5;
-
-    UIManager m_UIManager;
-
-    // Use this for initialization
-    void Start ()
-    {
-        m_AudioSource = GetComponent<AudioSource>();
-        m_UIManager = FindObjectOfType<UIManager>();
-
-        // Update UI
-        if (m_UIManager)
-        {
-            m_UIManager.SetAmmoText(m_BulletAmmo, m_GrenadeAmmo);
+    int m_CurrentAmmo = 100;
+    public int CurrentAmmo {
+        get {
+            return m_CurrentAmmo;
         }
     }
-	
-	// Update is called once per frame
-	void Update ()
+
+    [SerializeField]
+    float m_Range = 30.0f;
+    public float Range
+    {
+        get { return m_Range; }
+    }
+
+    public delegate void AmmoChanged();
+    public event AmmoChanged OnAmmoChanged;
+
+    // Use this for initialization
+    void Awake ()
+    {
+        m_AudioSource = GetComponent<AudioSource>();
+        m_CurrentAmmo = AmmoPerClip;
+    }
+
+    // Update is called once per frame
+    void Update()
     {
         if (!m_CanShoot)
         {
@@ -72,105 +67,64 @@ public class GunLogic : MonoBehaviour
             if (m_ShotCooldown < 0.0f)
             {
                 m_CanShoot = true;
-            }
-        }
-
-        if (m_CanShoot)
-        {
-            if(Input.GetButtonDown("Fire1") && m_BulletAmmo > 0)
-            {
-                Fire();
-                m_CanShoot = false;
-            }
-            else if (Input.GetButtonDown("Fire2") && m_GrenadeAmmo > 0)
-            {
-                FireGrenade();
-                m_CanShoot = false;
+                if (m_ProjectileModel != null)
+                    m_ProjectileModel.SetActive(m_CurrentAmmo > 0);
             }
         }
     }
 
-    void Fire()
+    public virtual void Fire()
     {
-        if(m_BulletPrefab)
+        if (!m_CanShoot || m_CurrentAmmo <= 0 || !ProjectilePrefab) return;
+
+        m_CanShoot = false;
+        if (m_ProjectileModel != null)
+            m_ProjectileModel.SetActive(false);
+
+        m_ShotCooldown = TimeBetweenShots;
+
+        // Reduce the Ammo count
+        --m_CurrentAmmo;
+
+        if (OnAmmoChanged != null)
+            OnAmmoChanged.Invoke();
+
+        // Create the Projectile from the Bullet Prefab
+        Instantiate(ProjectilePrefab, m_BulletSpawnPoint.position, transform.rotation * ProjectilePrefab.transform.rotation);
+
+        // Play Particle Effects
+        PlayGunVFX();
+
+        // Play Sound effect
+        if(m_AudioSource && ShootSound)
         {
-            // Reduce the Ammo count
-            --m_BulletAmmo;
-
-            // Create the Projectile from the Bullet Prefab
-            Instantiate(m_BulletPrefab, m_BulletSpawnPoint.position, transform.rotation * m_BulletPrefab.transform.rotation);
-
-            // Play Particle Effects
-            PlayGunVFX();
-
-            // Play Sound effect
-            if(m_AudioSource && m_BulletShot)
-            {
-                m_AudioSource.PlayOneShot(m_BulletShot);
-            }
-
-            // Update UI
-            if(m_UIManager)
-            {
-                m_UIManager.SetAmmoText(m_BulletAmmo, m_GrenadeAmmo);
-            }
-        }
-    }
-
-    void FireGrenade()
-    {
-        if(m_ExplosiveBulletPrefab)
-        {
-            // Reduce the Ammo count
-            --m_GrenadeAmmo;
-
-            // Create the Projectile from the Explosive Bullet Prefab
-            Instantiate(m_ExplosiveBulletPrefab, m_BulletSpawnPoint.position, transform.rotation * m_ExplosiveBulletPrefab.transform.rotation);
-
-            // Play Particle Effects
-            PlayGunVFX();
-
-            // Play Sound effect
-            if (m_AudioSource && m_GrenadeLaunched)
-            {
-                m_AudioSource.PlayOneShot(m_GrenadeLaunched);
-            }
-
-            // Update UI
-            if(m_UIManager)
-            {
-                m_UIManager.SetAmmoText(m_BulletAmmo, m_GrenadeAmmo);
-            }
+            m_AudioSource.PlayOneShot(ShootSound);
         }
     }
 
     void PlayGunVFX()
     {
-        if (m_Flare)
+        for(int i = 0; i < Particles.Length; ++i)
         {
-            m_Flare.Play();
-        }
-
-        if (m_Sparks)
-        {
-            m_Sparks.Play();
-        }
-
-        if (m_Smoke)
-        {
-            m_Smoke.Play();
+            if(Particles[i])
+            {
+                Particles[i].Play();
+            }
         }
     }
 
-    public void AddAmmo(int bullets, int grenades)
+    public void AddAmmo(int AmmoChange)
     {
-        m_BulletAmmo += bullets;
-        m_GrenadeAmmo += grenades;
-
-        // Update UI
-        if (m_UIManager)
+        m_CurrentAmmo += AmmoChange;
+        if(m_CurrentAmmo > AmmoPerClip)
         {
-            m_UIManager.SetAmmoText(m_BulletAmmo, m_GrenadeAmmo);
+            m_CurrentAmmo = AmmoPerClip;
         }
+        
+        if (OnAmmoChanged != null)
+            OnAmmoChanged.Invoke();
+
+        if (m_ProjectileModel != null)
+            m_ProjectileModel.SetActive(m_CanShoot && m_CurrentAmmo > 0);
     }
 }

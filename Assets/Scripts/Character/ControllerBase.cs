@@ -19,12 +19,14 @@ public abstract class ControllerBase : MonoBehaviour
     float m_JumpHeight = 4.0f;
 
     // The character's running speed
-    [SerializeField]
     public float WalkSpeed = 4.0f;
 
     // The character's running speed
-    [SerializeField]
     public float RunSpeed = 6.0f;
+
+    public Transform GunParent;
+
+    public GameObject CorpsePrefab;
 
     // --------------------------------------------------------------
 
@@ -47,14 +49,22 @@ public abstract class ControllerBase : MonoBehaviour
     {
         get { return m_IsRunning; }
     }
+    
+    protected GunLogic m_CurrentWeapon;
+
+    protected UIManager m_UIManager;
 
     void Awake()
     {
         m_CharacterController = GetComponent<CharacterController>();
+
+        GetComponent<Health>().OnDied += OnDied;
     }
 
     void Start()
     {
+        m_UIManager = FindObjectOfType<UIManager>();
+
         InitController();    
     }
 
@@ -86,8 +96,52 @@ public abstract class ControllerBase : MonoBehaviour
         m_VerticalSpeed = Mathf.Sqrt(m_JumpHeight * m_Gravity);
     }
 
-    protected void SetRunning(bool running)
+    public void SetRunning()
     {
-        m_IsRunning = running;
+        if (m_IsRunning) return;
+
+        m_IsRunning = true;
+    }
+
+    protected void SetWalking()
+    {
+        if (!m_IsRunning) return;
+
+        m_IsRunning = false;
+    }
+
+    protected void SwitchWeaponTo(GunLogic Weapon)
+    {
+        if (m_CurrentWeapon)
+        {
+            Destroy(m_CurrentWeapon.gameObject);
+        }
+
+        if (Weapon)
+        {
+            m_CurrentWeapon = Instantiate<GunLogic>(Weapon, GunParent, false);
+        }
+        else
+        {
+            m_CurrentWeapon = null;
+        }
+
+        m_UIManager.SetCurrentWeapon(m_CurrentWeapon);
+        OnCurrentWeaponChanged();
+    }
+
+    protected virtual void OnCurrentWeaponChanged() { }
+
+    void OnDied()
+    {
+        if(CorpsePrefab)
+        {
+            GameObject Corpse = Instantiate(CorpsePrefab, transform.position, transform.rotation);
+            Rigidbody rb = Corpse.GetComponent<Rigidbody>();
+            if(rb != null)
+            {
+                rb.AddForce(transform.forward * -1.0f, ForceMode.VelocityChange);
+            }
+        }
     }
 }

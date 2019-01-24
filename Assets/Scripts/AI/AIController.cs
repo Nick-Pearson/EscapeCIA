@@ -52,6 +52,20 @@ public class AIController : ControllerBase
     AIManager m_AIManager;
     GameObject m_Player;
 
+    // Weapon this enemy is equipped with
+    public GunLogic EquippedWeapon;
+
+    // the angle in degrees of half the character view frustum
+    public float ViewAngle = 80.0f;
+
+    // maxiumum distance the AI can see
+    public float MaxViewDist = 25.0f;
+
+    // how many seconds the character searches for the player after seeing them
+    public float FoundCooldownTime = 20.0f;
+
+    float m_TrackingTime = 0.0f;
+
     // --------------------------------------------------------------
     // Use this for initialization
     protected override void InitController()
@@ -60,15 +74,23 @@ public class AIController : ControllerBase
 
         m_Behaviour = GetComponent<BehaviourTree>();
         m_Behaviour.SetupTree();
-
-        GameObject AIManager = GameObject.FindWithTag("AIManager");
-        m_AIManager = AIManager.GetComponent<AIManager>();
-
-        m_AIManager.OnStimuliChanged += UpdateSenses;
+        
+        m_AIManager = FindObjectOfType<AIManager>();
+        m_AIManager.RegisterAIListener(this);
 
         m_Player = GameObject.FindWithTag("Player");
+        
+        SetAlertState(AlertStates.Unaware, true);
 
-        m_AlertState = AlertStates.Unaware;
+        if (EquippedWeapon)
+        {
+            SwitchWeaponTo(EquippedWeapon);
+        }
+    }
+
+    void OnDisable()
+    {
+        m_AIManager.RemoveAIListener(this);
     }
 
     // Update is called once per frame
@@ -81,8 +103,6 @@ public class AIController : ControllerBase
         }
 
         UpdateSenses();
-
-        SetRunning(m_AlertState == AlertStates.Found);
 
         m_Behaviour.TickTree(Time.deltaTime);
 
@@ -98,21 +118,60 @@ public class AIController : ControllerBase
         */
     }
 
+    public void ReportNewStimuli(Vector3 position, float ExpirationTime)
+    {
+        m_Behaviour.data["SearchLocation"] = position;
+        m_TrackingTime = Time.time + ExpirationTime;
+        SetAlertState(AlertStates.Tracking);
+    }
+
     void UpdateSenses()
     {
-        // loop through our current stimuli and update the alert level
+        // can we see the player?
+        bool canSeePlayer = CanSeePlayer();
         AlertStates NewState = AlertStates.Unaware;
 
-        List<Stimuli> Stimuli = m_AIManager.GetAllStimulusFor(transform.position);
+        if (canSeePlayer)
+        {
+            NewState = AlertStates.Found;
 
-        
+            m_TrackingTime = Time.time + FoundCooldownTime;
+            m_Behaviour.data["SearchLocation"] = m_Player.transform.position;
+        }
+        else if (m_TrackingTime > Time.time)
+        {
+            NewState = AlertStates.Tracking;
+        }
 
         SetAlertState(NewState);
     }
 
-    void SetAlertState(AlertStates NewState)
+    bool CanSeePlayer()
     {
-        if (NewState != m_AlertState) return;
+        Vector3 PlayerVector = m_Player.transform.position - transform.position;
+        float distSqrd = PlayerVector.sqrMagnitude;
+
+        if (distSqrd > (MaxViewDist * MaxViewDist)) return false;
+
+        PlayerVector.Normalize();
+
+        float Ang = Mathf.Rad2Deg * Mathf.Acos(Vector3.Dot(PlayerVector, transform.forward));
+
+        if (Ang > ViewAngle) return false;
+
+        Ray ray = new Ray(transform.position, PlayerVector);
+        RaycastHit hit;
+        if(Physics.Raycast(ray, out hit, MaxViewDist))
+        {
+            if (hit.collider.gameObject != m_Player) return false;
+        }
+
+        return true;
+    }
+
+    void SetAlertState(AlertStates NewState, bool Force = false)
+    {
+        if (!Force && NewState == m_AlertState) return;
 
         m_AlertState = NewState;
         m_Behaviour.data["AlertState"] = m_AlertState;
@@ -120,6 +179,13 @@ public class AIController : ControllerBase
 
     void NewWaypoint()
     {
+        if(Patrol.Length == 0)
+        {
+            m_Behaviour.data["Waypoint"] = transform.position;
+            m_Behaviour.data["Delay"] = 100.0f;
+            return;
+        }
+
         m_CurWaypoint = (m_CurWaypoint + 1) % Patrol.Length;
 
         Vector3 position = transform.position;
@@ -148,5 +214,20 @@ public class AIController : ControllerBase
     public void Die()
     {
         m_IsAlive = false;
+    }
+
+    public void Attack()
+    {
+        if(m_CurrentWeapon)
+            m_CurrentWeapon.Fire();
+    }
+
+
+    protected override void OnCurrentWeaponChanged()
+    {
+        if(m_CurrentWeapon)
+            m_Behaviour.data["WeaponRange"] = m_CurrentWeapon.Range;
+        else
+            m_Behaviour.data["WeaponRange"] = 1.5f;
     }
 }

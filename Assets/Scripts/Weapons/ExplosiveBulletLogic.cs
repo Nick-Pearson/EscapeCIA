@@ -10,9 +10,14 @@ public class ExplosiveBulletLogic : BulletLogic
 
     protected override void Explode()
     {
-        if (m_ExplosionPE)
+        if (!m_ExplosionPE) return;
+
+        Instantiate(m_ExplosionPE, transform.position, transform.rotation);
+
+        AIManager Manager = GameObject.FindObjectOfType<AIManager>();
+        if (Manager)
         {
-            Instantiate(m_ExplosionPE, transform.position, transform.rotation);
+            Manager.ReportNoiseEvent(transform.position, 45.0f);
         }
     }
 }

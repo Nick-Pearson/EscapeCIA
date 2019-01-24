@@ -30,19 +30,19 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Mesh1_Group2_Group1_ModelMat
-    second: {fileID: 2100000, guid: 6aa032c73701e3f46aa75da39fc1542c, type: 2}
+    second: {fileID: 2100000, guid: cc0a5ea5331469f4ca59ef81451ae014, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Mesh2_Group3_Group1_ModelMat
-    second: {fileID: 2100000, guid: 8e329d6711dc10642836f43f2bb40131, type: 2}
+    second: {fileID: 2100000, guid: 7d89919bc1efbb14ebded85a0db6ed08, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Redwood
     second: {fileID: 2100000, guid: 6d819cd7190b96141a6695ab4511fa73, type: 2}
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 0

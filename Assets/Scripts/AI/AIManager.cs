@@ -2,58 +2,39 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum StimuliType
-{
-    Sound
-}
 
-public struct Stimuli
-{
-    public Vector3 position;
-    public float range;
-    public float life;
-    public StimuliType type;
-}
-
-// responsible for storing stimuli (mainly noises)
+// responsible for storing stimuli (noises)
 public class AIManager : MonoBehaviour
 {
-    List<Stimuli> m_Stimuli;
+    private List<AIController> AIInstances;
 
-    public delegate void StimuliChanged();
-    public event StimuliChanged OnStimuliChanged;
-    
-    public void Awake()
+    private void Awake()
     {
-        m_Stimuli = new List<Stimuli>();
+        AIInstances = new List<AIController>();
     }
 
+    // notify AI that a noise occurred, loudness equals the distance the noise can be heard from
     public void ReportNoiseEvent(Vector3 position, float loudness)
     {
-        Stimuli newStimuli;
-        newStimuli.type = StimuliType.Sound;
-        newStimuli.position = position;
-        newStimuli.life = 5.0f;
-        newStimuli.range = loudness;
+        // notify all AI that are nearby
+        float loudnessSqrd = loudness * loudness;
 
-        m_Stimuli.Add(newStimuli);
-        OnStimuliChanged.Invoke();
+        foreach(AIController Instance in AIInstances)
+        {
+            float distSqrd = (Instance.transform.position - position).sqrMagnitude;
+            if (distSqrd > loudnessSqrd) continue;
+
+            Instance.ReportNewStimuli(position, loudness + 1.0f);
+        }
     }
 
-    public List<Stimuli> GetAllStimulusFor(Vector3 position)
+    public void RegisterAIListener(AIController Instance)
     {
-        List<Stimuli> outStimuli = new List<Stimuli>();
+        AIInstances.Add(Instance);
+    }
 
-        for(int i = 0; i < m_Stimuli.Count; ++i)
-        {
-            float Distance = (m_Stimuli[i].position - position).sqrMagnitude;
-
-            if (Distance < m_Stimuli[i].range)
-            {
-                outStimuli.Add(m_Stimuli[i]);
-            }
-        }
-
-        return outStimuli;
+    public void RemoveAIListener(AIController Instance)
+    {
+        AIInstances.Remove(Instance);
     }
 }

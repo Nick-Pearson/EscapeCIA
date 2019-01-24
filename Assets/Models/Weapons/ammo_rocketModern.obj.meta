@@ -37,7 +37,7 @@ ModelImporter:
       name: Mesh1_Group1_ModelMat
     second: {fileID: 2100000, guid: 374a6253080dda6408dad483f51c463d, type: 2}
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 0

@@ -7,33 +7,34 @@ public class UIManager : MonoBehaviour
 {
 
     // --------------------------------------------------------------
-
+    
     [SerializeField]
-    Text m_BulletText;
-
-    [SerializeField]
-    Text m_GrenadeText;
+    Text m_WeaponText;
 
     [SerializeField]
     SSHealthBar HealthBarPrefab;
 
+    [SerializeField]
+    HealthBar PlayerHealthBar;
+
+    GunLogic m_CurrentWeapon;
+
     private List<SSHealthBar> HealthBarPool = new List<SSHealthBar>();
 
-    // --------------------------------------------------------------
-
-    public void SetAmmoText(int bulletCount, int grenadeCount)
+    private void Awake()
     {
-        if(m_BulletText)
-        {
-            m_BulletText.text = "Bullets: " + bulletCount;
-        }
+        GameObject Player = GameObject.FindGameObjectWithTag("Player");
+        Health PlayerHealth = Player.GetComponent<Health>();
 
-        if(m_GrenadeText)
+        if(PlayerHealth)
         {
-            m_GrenadeText.text = "Grenades: " + grenadeCount;
+            PlayerHealthBar.Initialise(PlayerHealth, this);
+        }
+        else
+        {
+            Destroy(PlayerHealthBar);
         }
     }
-
 
     // --------------------------------------------------------------
 
@@ -61,5 +62,31 @@ public class UIManager : MonoBehaviour
     {
       HealthBarPool.Add(healthBar);
       healthBar.gameObject.SetActive(false);
+    }
+
+
+    // --------------------------------------------------------------
+
+    public void SetCurrentWeapon(GunLogic newWeapon)
+    {
+        m_CurrentWeapon = newWeapon;
+        UpdateWeaponText();
+
+        if (newWeapon != null)
+        {
+            newWeapon.OnAmmoChanged += UpdateWeaponText;
+        }
+    }
+
+    void UpdateWeaponText()
+    {
+        if (m_CurrentWeapon == null)
+        {
+            m_WeaponText.text = "Unarmed";
+        }
+        else
+        {
+            m_WeaponText.text = string.Format("{0}  {1} / {2}", m_CurrentWeapon.DisplayName, m_CurrentWeapon.CurrentAmmo, m_CurrentWeapon.AmmoPerClip);
+        }
     }
 }

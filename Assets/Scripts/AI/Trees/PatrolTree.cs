@@ -4,13 +4,6 @@ using UnityEngine;
 
 public class PatrolTree : BehaviourTree
 {
-    protected new void Awake()
-    {
-        base.Awake();
-
-        data["owner"] = gameObject;
-    }
-
     public override void SetupTree()
     {
         Task patrolBehaviour = PatrolBehaviour();
@@ -23,6 +16,7 @@ public class PatrolTree : BehaviourTree
         rootSeq.AddTask(fightBehaviour, new Decorator[1] { new IsAlertState("AlertState", AlertStates.Found) });
 
         root = rootSeq;
+        // TODO: Add decorator to check if enemy is alive?
     }
 
     Task PatrolBehaviour()
@@ -30,6 +24,7 @@ public class PatrolTree : BehaviourTree
         Sequence rootSeq = new Sequence();
 
         rootSeq.AddTask(new SendMessage("NewWaypoint"));
+        rootSeq.AddTask(new SendMessage("SetWalking"));
         rootSeq.AddTask(new RotateTowards("Waypoint"));
         rootSeq.AddTask(new NavigateTo("Waypoint"));
         rootSeq.AddTask(new WaitTask("Delay"));
@@ -55,11 +50,19 @@ public class PatrolTree : BehaviourTree
         rootSeq.AddTask(new Repeat(mainSeq, 3));
 
         return rootSeq;
-
     }
 
     Task FightBehaviour()
     {
-        return new WaitTask(1.0f);
+        Sequence rootSeq = new Sequence();
+
+        rootSeq.AddTask(new SendMessage("SetRunning"));
+        rootSeq.AddTask(new RotateTowards("SearchLocation"));
+        rootSeq.AddTask(new MoveIntoRange("SearchLocation", "WeaponRange"));
+        rootSeq.AddTask(new RotateTowards("SearchLocation"));
+        rootSeq.AddTask(new SendMessage("Attack"));
+        rootSeq.AddTask(new WaitTask(0.4f));
+
+        return rootSeq;
     }
 }

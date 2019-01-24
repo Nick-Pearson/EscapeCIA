@@ -24,12 +24,18 @@ public class PlayerController : ControllerBase
     const float MAX_RESPAWN_TIME = 1.0f;
     float m_RespawnTime = MAX_RESPAWN_TIME;
 
+    public GunLogic[] AvailableWeapons;
+
+    int m_CurrentWeaponIdx;
+
     // --------------------------------------------------------------
 
     // Use this for initialization
     protected override void InitController()
     {
         m_SpawningPosition = transform.position;
+        
+        SwitchWeaponTo(null);
     }
 
     void UpdateMovementState()
@@ -51,6 +57,31 @@ public class PlayerController : ControllerBase
         }
     }
 
+    void UpdateWeapons()
+    {
+        if(Input.GetButtonDown("Fire1") && m_CurrentWeapon)
+        {
+            m_CurrentWeapon.Fire();
+        }
+
+
+        if (Input.GetButtonUp("Fire2") && AvailableWeapons.Length > 1)
+        {
+            SwitchWeapon();
+        }
+    }
+
+    void SwitchWeapon()
+    {
+        SwitchWeaponTo(AvailableWeapons[m_CurrentWeaponIdx]);
+
+        ++m_CurrentWeaponIdx;
+        if(m_CurrentWeaponIdx >= AvailableWeapons.Length)
+        {
+            m_CurrentWeaponIdx = 0;
+        }
+    }
+
     // Update is called once per frame
     protected override void UpdateController()
     {
@@ -66,6 +97,9 @@ public class PlayerController : ControllerBase
 
         // Update jumping input and apply gravity
         UpdateJumpState();
+
+        // update combat input
+        UpdateWeapons();
 
         // Calculate actual motion
         m_CurrentMovementOffset = (m_MovementDirection * m_MovementSpeed  + new Vector3(0, VerticalSpeed, 0)) * Time.deltaTime;

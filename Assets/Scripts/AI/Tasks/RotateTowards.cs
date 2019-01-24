@@ -67,6 +67,12 @@ public class RotateTowards : Task
             Direction.y = 0.0f;
         }
 
+        if(Direction.sqrMagnitude < 1.0f)
+        {
+            MarkCompleted(true);
+            return;
+        }
+
         m_Target = Quaternion.LookRotation(Direction);
 
         if(Quaternion.Angle(m_Target, m_From) < 1.0f)

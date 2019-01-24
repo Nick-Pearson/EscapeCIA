@@ -21,11 +21,11 @@ public class Repeat : Task
             MarkCompleted(false);
         }
 
-        if(m_Subtask.Completed)
+        if (m_Subtask.Completed)
         {
             m_ReapeatCount++;
 
-            if(m_ReapeatCount >= m_RepeatLimit && m_RepeatLimit != -1)
+            if (m_ReapeatCount >= m_RepeatLimit && m_RepeatLimit != -1)
             {
                 MarkCompleted(true);
                 return;
@@ -33,8 +33,11 @@ public class Repeat : Task
 
             m_Subtask.Start(ref data);
         }
-
-        m_Subtask.UpdateTask(deltaTime, ref data);
+        else
+        {
+            if(!m_Subtask.Aborted)
+                m_Subtask.UpdateTask(deltaTime, ref data);
+        }
     }
 
     protected override void OnTaskStarted(ref Hashtable data)

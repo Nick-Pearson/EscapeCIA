@@ -52,5 +52,12 @@ public class NavigateTo : Task
 
         m_Target = (Vector3)data[m_TargetPropertyName];
         m_Agent.SetDestination(m_Target);
+        m_Agent.isStopped = false;
+    }
+
+    protected override void OnTaskAborted()
+    {
+        m_Agent.isStopped = true;
+        base.OnTaskAborted();
     }
 }

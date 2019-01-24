@@ -72,7 +72,7 @@ ModelImporter:
       name: Mesh5_Group6_Group1_ModelMat
     second: {fileID: 2100000, guid: be06aefef54597448bd044e22c2622a6, type: 2}
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 0
