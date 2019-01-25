@@ -7,3 +7,4 @@ Build/
 *.sln
 *.csproj
 obj/
+*.blend1

@@ -12,6 +12,11 @@ public class UIManager : MonoBehaviour
     Text m_WeaponText;
 
     [SerializeField]
+    Text m_InteractableText;
+    [SerializeField]
+    GameObject m_InteractableGroup;
+
+    [SerializeField]
     SSHealthBar HealthBarPrefab;
 
     [SerializeField]
@@ -63,8 +68,7 @@ public class UIManager : MonoBehaviour
       HealthBarPool.Add(healthBar);
       healthBar.gameObject.SetActive(false);
     }
-
-
+    
     // --------------------------------------------------------------
 
     public void SetCurrentWeapon(GunLogic newWeapon)
@@ -87,6 +91,18 @@ public class UIManager : MonoBehaviour
         else
         {
             m_WeaponText.text = string.Format("{0}  {1} / {2}", m_CurrentWeapon.DisplayName, m_CurrentWeapon.CurrentAmmo, m_CurrentWeapon.AmmoPerClip);
+        }
+    }
+
+    // --------------------------------------------------------------
+
+    public void SetBestInteractable(Interactable interactable)
+    {
+        m_InteractableGroup.SetActive(interactable != null);
+
+        if (interactable)
+        {
+            m_InteractableText.text = "[E]" + interactable.promptText;
         }
     }
 }

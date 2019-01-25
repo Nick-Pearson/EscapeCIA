@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerController : ControllerBase
 {
@@ -28,12 +29,17 @@ public class PlayerController : ControllerBase
 
     int m_CurrentWeaponIdx;
 
+    HashSet<Interactable> m_Interactables;
+    Interactable m_BestInteractable;
+
     // --------------------------------------------------------------
 
     // Use this for initialization
     protected override void InitController()
     {
         m_SpawningPosition = transform.position;
+
+        m_Interactables = new HashSet<Interactable>();
         
         SwitchWeaponTo(null);
     }
@@ -54,6 +60,14 @@ public class PlayerController : ControllerBase
         if (Input.GetButtonDown("Jump_P1") && CharacterController.isGrounded)
         {
             Jump();
+        }
+    }
+
+    void UpdateInteractableState()
+    {
+        if(Input.GetButtonDown("Interact") && m_BestInteractable)
+        {
+            m_BestInteractable.DoInteract();
         }
     }
 
@@ -100,6 +114,8 @@ public class PlayerController : ControllerBase
 
         // update combat input
         UpdateWeapons();
+
+        UpdateInteractableState();
 
         // Calculate actual motion
         m_CurrentMovementOffset = (m_MovementDirection * m_MovementSpeed  + new Vector3(0, VerticalSpeed, 0)) * Time.deltaTime;
@@ -150,5 +166,32 @@ public class PlayerController : ControllerBase
         m_IsAlive = true;
         transform.position = m_SpawningPosition;
         transform.rotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
+    }
+
+    public void RegisterInteractable(Interactable interactable)
+    {
+        m_Interactables.Add(interactable);
+        UpdateBestInteractable();
+    }
+
+    public void DeregisterInteractable(Interactable interactable)
+    {
+        m_Interactables.Remove(interactable);
+        UpdateBestInteractable();
+    }
+
+    void UpdateBestInteractable()
+    {
+        m_BestInteractable = null;
+
+        foreach(Interactable i in m_Interactables)
+        {
+            if(!m_BestInteractable)
+            {
+                m_BestInteractable = i;
+            }
+        }
+
+        m_UIManager.SetBestInteractable(m_BestInteractable);
     }
 }

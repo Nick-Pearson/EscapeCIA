@@ -81,11 +81,8 @@ public class AIController : ControllerBase
         m_Player = GameObject.FindWithTag("Player");
         
         SetAlertState(AlertStates.Unaware, true);
-
-        if (EquippedWeapon)
-        {
-            SwitchWeaponTo(EquippedWeapon);
-        }
+        
+        SwitchWeaponTo(EquippedWeapon);
     }
 
     void OnDisable()
