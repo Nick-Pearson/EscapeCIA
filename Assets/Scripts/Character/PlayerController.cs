@@ -27,10 +27,17 @@ public class PlayerController : ControllerBase
 
     public GunLogic[] AvailableWeapons;
 
+
+    public float PainSoundProbability = 0.5f;
+    public AudioClip[] PainSounds;
+
     int m_CurrentWeaponIdx;
 
     HashSet<Interactable> m_Interactables;
     Interactable m_BestInteractable;
+
+    Health m_Health;
+    AudioSource m_AudioSource;
 
     // --------------------------------------------------------------
 
@@ -40,7 +47,12 @@ public class PlayerController : ControllerBase
         m_SpawningPosition = transform.position;
 
         m_Interactables = new HashSet<Interactable>();
-        
+
+        m_Health = GetComponent<Health>();
+        m_Health.OnHealthChanged += HealthModified;
+
+        m_AudioSource = GetComponent<AudioSource>();
+
         SwitchWeaponTo(null);
     }
 
@@ -193,5 +205,13 @@ public class PlayerController : ControllerBase
         }
 
         m_UIManager.SetBestInteractable(m_BestInteractable);
+    }
+
+    void HealthModified(int change)
+    {
+        if (change > 0 || Random.value > PainSoundProbability || PainSounds.Length == 0)
+            return;
+
+        m_AudioSource.PlayOneShot(PainSounds[Random.Range(0, PainSounds.Length)]);
     }
 }

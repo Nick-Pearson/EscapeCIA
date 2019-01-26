@@ -14,7 +14,7 @@ public class Health : MonoBehaviour
         get { return m_CurHealth; }
     }
 
-    public delegate void HealthChanged();
+    public delegate void HealthChanged(int change);
     public event HealthChanged OnHealthChanged;
 
     public delegate void Died();
@@ -36,7 +36,7 @@ public class Health : MonoBehaviour
         m_CurHealth = Mathf.Clamp(m_CurHealth, 0, MaxHealth);
 
         if(OnHealthChanged != null)
-          OnHealthChanged();
+          OnHealthChanged(change);
 
         if(UIListener == null)
         {

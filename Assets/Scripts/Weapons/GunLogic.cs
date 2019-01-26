@@ -48,6 +48,10 @@ public class GunLogic : MonoBehaviour
         get { return m_Range; }
     }
 
+    public float NoiseLoudness;
+
+    AIManager m_AIManager;
+
     public delegate void AmmoChanged();
     public event AmmoChanged OnAmmoChanged;
 
@@ -56,6 +60,8 @@ public class GunLogic : MonoBehaviour
     {
         m_AudioSource = GetComponent<AudioSource>();
         m_CurrentAmmo = AmmoPerClip;
+
+        m_AIManager = FindObjectOfType<AIManager>();
     }
 
     // Update is called once per frame
@@ -100,6 +106,8 @@ public class GunLogic : MonoBehaviour
         {
             m_AudioSource.PlayOneShot(ShootSound);
         }
+
+        m_AIManager.ReportNoiseEvent(m_BulletSpawnPoint.position, NoiseLoudness);
     }
 
     void PlayGunVFX()

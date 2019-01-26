@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
@@ -15,6 +16,21 @@ public class UIManager : MonoBehaviour
     Text m_InteractableText;
     [SerializeField]
     GameObject m_InteractableGroup;
+    
+    [SerializeField]
+    Text m_TutorialText;
+
+    [SerializeField]
+    GameObject m_TutorialGroup;
+
+    [SerializeField]
+    GameObject m_DieScreen;
+
+    public AudioClip TutorialSound;
+
+    // how long a tutorial message remains on screen
+    public float TutorialDuration = 10.0f;
+    float m_TutorialEndTime;
 
     [SerializeField]
     SSHealthBar HealthBarPrefab;
@@ -23,6 +39,7 @@ public class UIManager : MonoBehaviour
     HealthBar PlayerHealthBar;
 
     GunLogic m_CurrentWeapon;
+    AudioSource m_AudioSource;
 
     private List<SSHealthBar> HealthBarPool = new List<SSHealthBar>();
 
@@ -38,6 +55,18 @@ public class UIManager : MonoBehaviour
         else
         {
             Destroy(PlayerHealthBar);
+        }
+
+        PlayerHealth.OnDied += () => StartCoroutine(PlayerDied());
+
+        m_AudioSource = GetComponent<AudioSource>();
+    }
+
+    void Update()
+    {
+        if(m_TutorialEndTime < Time.time)
+        {
+            m_TutorialGroup.SetActive(false);
         }
     }
 
@@ -104,5 +133,37 @@ public class UIManager : MonoBehaviour
         {
             m_InteractableText.text = "[E]" + interactable.promptText;
         }
+    }
+
+    // --------------------------------------------------------------
+
+    public void SetTutorialMessage(string message)
+    {
+        m_TutorialText.text = message;
+        m_TutorialEndTime = Time.time + TutorialDuration;
+        m_TutorialGroup.SetActive(true);
+
+        if(m_AudioSource && TutorialSound)
+        {
+            m_AudioSource.PlayOneShot(TutorialSound);
+        }
+    }
+
+    // --------------------------------------------------------------
+
+    public void GotToMainMenu()
+    {
+        SceneManager.LoadScene("Menu");
+    }
+
+    public void ReloadLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+    
+    IEnumerator PlayerDied()
+    {
+        yield return new WaitForSeconds(3.0f);
+        m_DieScreen.SetActive(true);
     }
 }

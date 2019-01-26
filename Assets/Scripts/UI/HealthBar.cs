@@ -60,7 +60,7 @@ public class HealthBar : MonoBehaviour
         UpdateSprites();
         UpdateHealthDisplay();
 
-        m_Target.OnHealthChanged += new Health.HealthChanged(this.UpdateHealthDisplay);
+        m_Target.OnHealthChanged += ((change) => UpdateHealthDisplay());
     }
 
 

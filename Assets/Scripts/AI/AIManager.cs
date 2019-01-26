@@ -18,8 +18,9 @@ public class AIManager : MonoBehaviour
     {
         // notify all AI that are nearby
         float loudnessSqrd = loudness * loudness;
+        if (loudnessSqrd < 0.1f) return;
 
-        foreach(AIController Instance in AIInstances)
+        foreach (AIController Instance in AIInstances)
         {
             float distSqrd = (Instance.transform.position - position).sqrMagnitude;
             if (distSqrd > loudnessSqrd) continue;

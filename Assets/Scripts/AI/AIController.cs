@@ -66,6 +66,8 @@ public class AIController : ControllerBase
 
     float m_TrackingTime = 0.0f;
 
+    public Interactable TakedownInteractable;
+
     // --------------------------------------------------------------
     // Use this for initialization
     protected override void InitController()
@@ -80,6 +82,8 @@ public class AIController : ControllerBase
 
         m_Player = GameObject.FindWithTag("Player");
         
+        TakedownInteractable.OnInteract += InstantDeath;
+
         SetAlertState(AlertStates.Unaware, true);
         
         SwitchWeaponTo(EquippedWeapon);
@@ -208,9 +212,10 @@ public class AIController : ControllerBase
         }
     }
 
-    public void Die()
+    public void InstantDeath()
     {
-        m_IsAlive = false;
+        Health HealthComp = GetComponent<Health>();
+        HealthComp.ModifyHealth(-HealthComp.MaxHealth);
     }
 
     public void Attack()
