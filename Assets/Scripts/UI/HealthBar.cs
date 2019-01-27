@@ -36,15 +36,7 @@ public class HealthBar : MonoBehaviour
     private float m_IconWidth;
 
     // --------------------------------------------------------------
-
-    void Awake()
-    {
-        m_RectTransform = GetComponent<RectTransform>();
-        m_IconWidth = IconPrefab.GetComponent<RectTransform>().sizeDelta.x;
-        m_Camera = FindObjectOfType<Camera>();
-        m_Sprites = new List<Image>();
-    }
-
+    
     // Use this for initialization
     public virtual void Initialise (Health inHealthComp, UIManager inUIManager)
     {
@@ -57,6 +49,11 @@ public class HealthBar : MonoBehaviour
         }
 
         m_Target.UIListener = gameObject;
+
+        m_RectTransform = GetComponent<RectTransform>();
+        m_IconWidth = IconPrefab.GetComponent<RectTransform>().sizeDelta.x;
+        m_Camera = FindObjectOfType<Camera>();
+        m_Sprites = new List<Image>();
 
         UpdateSprites();
         UpdateHealthDisplay();
