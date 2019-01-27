@@ -37,7 +37,13 @@ public class UIManager : MonoBehaviour
 
     [SerializeField]
     GameObject m_EndScreen;
-    
+
+    [SerializeField]
+    Transform m_MedalContainer;
+
+    [SerializeField]
+    MedalDetails m_MedalUITemplate;
+
     [SerializeField]
     GameObject m_EndMenuButton;
 
@@ -64,7 +70,7 @@ public class UIManager : MonoBehaviour
 
     private List<SSHealthBar> HealthBarPool = new List<SSHealthBar>();
 
-    private void Awake()
+    void Start()
     {
         GameObject Player = GameObject.FindGameObjectWithTag("Player");
         Health PlayerHealth = Player.GetComponent<Health>();
@@ -208,10 +214,28 @@ public class UIManager : MonoBehaviour
 
     // --------------------------------------------------------------
 
-    public void OnEndLevel()
+    public void OnEndLevel(MedalBase[] Medals)
     {
         Time.timeScale = 0.0f;
+
+        for(int i = 0; i < Medals.Length; ++i)
+        {
+            MedalDetails Details = Instantiate(m_MedalUITemplate, m_MedalContainer);
+            Details.SetDetails(Medals[i]);
+
+            RectTransform newRectTransform = Details.GetComponent<RectTransform>();
+
+            Vector2 anchoredPos = newRectTransform.anchoredPosition;
+            anchoredPos.y -= 100.0f * i;
+            newRectTransform.anchoredPosition = anchoredPos;
+        }
+
         m_EndScreen.SetActive(true);
+
+        RectTransform rectTransform = m_EndScreen.GetComponent<RectTransform>();
+        Vector2 size = rectTransform.sizeDelta;
+        size.y += Medals.Length * 100.0f;
+        rectTransform.sizeDelta = size;
 
         string NextLevel = FindObjectOfType<GameDataManager>().GetNextLevelName(SceneManager.GetActiveScene().name);
 

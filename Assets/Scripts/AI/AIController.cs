@@ -72,6 +72,8 @@ public class AIController : ControllerBase
 
     Vector3 m_StartLoc;
 
+    GameDataManager m_DataManager;
+
     // --------------------------------------------------------------
     // Use this for initialization
     protected override void InitController()
@@ -83,6 +85,8 @@ public class AIController : ControllerBase
         
         m_AIManager = FindObjectOfType<AIManager>();
         m_AIManager.RegisterAIListener(this);
+
+        m_DataManager = FindObjectOfType<GameDataManager>();
 
         m_Player = GameObject.FindWithTag("Player");
         
@@ -181,6 +185,11 @@ public class AIController : ControllerBase
     {
         if (!Force && NewState == m_AlertState) return;
 
+        if (NewState == AlertStates.Found)
+        {
+            m_DataManager.TimesFound++;
+        }
+
         m_AlertState = NewState;
         m_Behaviour.data["AlertState"] = m_AlertState;
     }
@@ -239,6 +248,8 @@ public class AIController : ControllerBase
 
         WeaponPickup Pickup = Instantiate(PickupPrefab, transform.position, Quaternion.identity);
         Pickup.SetWeapon(EquippedWeapon);
+
+        m_DataManager.EnemiesKilled++;
     }
 
 

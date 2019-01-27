@@ -14,10 +14,12 @@ public class LevelEndTrigger : MonoBehaviour {
         UIManager ui = FindObjectOfType<UIManager>();
         GameDataManager data = FindObjectOfType<GameDataManager>();
 
-        data.MarkLevelCompleted(SceneManager.GetActiveScene().name);
+        MedalBase[] Medals = new MedalBase[0] { };
+
+        data.MarkLevelCompleted(SceneManager.GetActiveScene().name, out Medals);
         data.SavePlayerWeapons(PC.AvailableWeapons);
 
-        ui.OnEndLevel();
+        ui.OnEndLevel(Medals);
     }
 
     void OnDrawGizmos()

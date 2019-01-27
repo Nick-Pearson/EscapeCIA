@@ -11,14 +11,30 @@ public class LevelDetails : MonoBehaviour
     public GameObject LockedIcon;
     public GameObject LockItems;
 
+    public Transform MedalsContainer;
+    public Image MedalIconContent;
+
     bool m_Locked;
     LevelInfo m_LevelInfo;
 
-    public void SetLevelInfo(LevelInfo info)
+    public void SetLevelInfo(GameDataManager data, LevelInfo info)
     {
         m_LevelInfo = info;
 
         LevelTitle.text = m_LevelInfo.LevelDisplayName;
+        
+        for(int i = 0; i < info.Medals.Length; ++i)
+        {
+            MedalBase Medal = data.GetMedalWithID(info.Medals[i]);
+
+            Image MedalIcon = Instantiate(MedalIconContent, MedalsContainer);
+            MedalIcon.sprite = Medal.MedalIcon;
+
+            RectTransform rectTransform = MedalIcon.GetComponent<RectTransform>();
+            Vector2 pos = rectTransform.anchoredPosition;
+            pos.x += rectTransform.sizeDelta.x * i;
+            rectTransform.anchoredPosition = pos;
+        }
     }
 
     public void SetLocked(bool Locked)

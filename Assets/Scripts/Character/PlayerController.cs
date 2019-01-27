@@ -271,4 +271,9 @@ public class PlayerController : ControllerBase
             m_AudioSource.PlayOneShot(GainAmmoSound);
         }
     }
+
+    protected override void OnCurrentWeaponChanged()
+    {
+        m_UIManager.SetCurrentWeapon(m_CurrentWeapon);
+    }
 }

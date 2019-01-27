@@ -14,7 +14,7 @@ public class LevelSelect : MonoBehaviour
         for(int i = 0; i < infos.Length; ++i)
         {
             LevelDetails instance = Instantiate(Template, transform);
-            instance.SetLevelInfo(infos[i]);
+            instance.SetLevelInfo(Manager, infos[i]);
             instance.SetLocked(i > 0 && !infos[i - 1].Complete);
 
             RectTransform newRectTransform = instance.GetComponent<RectTransform>();

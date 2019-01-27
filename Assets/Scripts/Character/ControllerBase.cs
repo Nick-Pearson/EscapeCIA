@@ -154,7 +154,6 @@ public abstract class ControllerBase : MonoBehaviour
             m_CurrentWeapon = null;
         }
 
-        m_UIManager.SetCurrentWeapon(m_CurrentWeapon);
         OnCurrentWeaponChanged();
     }
 

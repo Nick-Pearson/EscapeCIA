@@ -24,6 +24,8 @@ public class GameDataManager : MonoBehaviour
 
     public GunLogic[] AllWeapons;
 
+    public MedalBase[] AllMedals;
+
     class GameData
     {
         public string[] PlayerWeapons;
@@ -34,6 +36,13 @@ public class GameDataManager : MonoBehaviour
 
     bool m_Loaded = false;
     static string PREF_KEY;
+
+    [HideInInspector]
+    public int TimesFound = 0;
+
+    public int TotalEnemies = 0;
+    [HideInInspector]
+    public int EnemiesKilled = 0;
 
     GameData GetDefaultData()
     {
@@ -91,6 +100,13 @@ public class GameDataManager : MonoBehaviour
         PlayerPrefs.SetString(PREF_KEY, DataStr);
     }
 
+    public void DeleteData()
+    {
+        PlayerPrefs.DeleteKey(PREF_KEY);
+        m_Loaded = false;
+        LoadIfRequired();
+    }
+
     public LevelInfo[] GetLevelInfo()
     {
         LoadIfRequired();
@@ -134,17 +150,42 @@ public class GameDataManager : MonoBehaviour
         return null;
     }
 
-    public void MarkLevelCompleted(string SceneName)
+    public void MarkLevelCompleted(string SceneName, out MedalBase[] CompletedMedals)
     {
+        List<MedalBase> Medals = new List<MedalBase>();
+
+        foreach (MedalBase Medal in AllMedals)
+        {
+            if (Medal.AchievedMedal(this))
+            {
+                Medals.Add(Medal);
+            }
+        }
+
+        CompletedMedals = Medals.ToArray();
+
         for (int i = 0; i < levelInfo.Length; ++i)
         {
             if (levelInfo[i].LevelSceneName == SceneName)
             {
                 levelInfo[i].Complete = true;
+
+                List<string> MedalIDs = new List<string>(levelInfo[i].Medals);
+
+                // Add all medals
+                foreach(MedalBase Medal in Medals)
+                {
+                    if(MedalIDs.Contains(Medal.MedalID)) continue;
+
+                    MedalIDs.Add(Medal.MedalID);
+                }
+
+                levelInfo[i].Medals = MedalIDs.ToArray();
+
                 break;
             }
         }
-
+        
         SaveData();
     }
 
@@ -165,5 +206,37 @@ public class GameDataManager : MonoBehaviour
         }
 
         return "";
+    }
+
+    public MedalBase GetMedalWithID(string ID)
+    {
+        foreach (MedalBase medal in AllMedals)
+        {
+            if (medal.MedalID == ID) return medal;
+        }
+
+        return null;
+    }
+
+    public float GetCompletion()
+    {
+        LoadIfRequired();
+
+        int Total = 0;
+        Total += levelInfo.Length * (1 + AllMedals.Length);
+        Total += AllWeapons.Length;
+
+        int Value = 0;
+        Value += m_Data.PlayerWeapons.Length;
+
+        foreach (LevelInfo info in levelInfo)
+        {
+            if (info.Complete)
+            {
+                Value += 1 + info.Medals.Length;
+            }
+        }
+
+        return (float)Value / (float)Total;
     }
 }
