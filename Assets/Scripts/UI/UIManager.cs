@@ -35,6 +35,18 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     Text m_UnlockDesc;
 
+    [SerializeField]
+    GameObject m_EndScreen;
+    
+    [SerializeField]
+    GameObject m_EndMenuButton;
+
+    [SerializeField]
+    GameObject m_ThanksScreen;
+
+    [SerializeField]
+    GameObject m_PauseMenu;
+
     public AudioClip TutorialSound;
 
     // how long a tutorial message remains on screen
@@ -161,11 +173,13 @@ public class UIManager : MonoBehaviour
 
     public void GotToMainMenu()
     {
+        Time.timeScale = 1.0f;
         SceneManager.LoadScene("Menu");
     }
 
     public void ReloadLevel()
     {
+        Time.timeScale = 1.0f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
@@ -190,5 +204,48 @@ public class UIManager : MonoBehaviour
     {
         m_UnlockScreen.SetActive(false);
         Time.timeScale = 1.0f;
+    }
+
+    // --------------------------------------------------------------
+
+    public void OnEndLevel()
+    {
+        Time.timeScale = 0.0f;
+        m_EndScreen.SetActive(true);
+
+        string NextLevel = FindObjectOfType<GameDataManager>().GetNextLevelName(SceneManager.GetActiveScene().name);
+
+        m_EndMenuButton.SetActive(NextLevel != "");
+    }
+
+    public void NextLevel()
+    {
+        Time.timeScale = 1.0f;
+
+        string NextLevel = FindObjectOfType<GameDataManager>().GetNextLevelName(SceneManager.GetActiveScene().name);
+
+        if(NextLevel == "")
+        {
+            m_EndScreen.SetActive(false);
+            m_ThanksScreen.SetActive(true);
+        }
+        else
+        {
+            SceneManager.LoadScene(NextLevel);
+        }
+    }
+
+    // --------------------------------------------------------------
+
+    public void PauseGame()
+    {
+        Time.timeScale = 0.0f;
+        m_PauseMenu.SetActive(true);
+    }
+
+    public void ResumeGame()
+    {
+        Time.timeScale = 1.0f;
+        m_PauseMenu.SetActive(false);
     }
 }

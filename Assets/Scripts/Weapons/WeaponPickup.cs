@@ -17,7 +17,8 @@ public class WeaponPickup : MonoBehaviour
 
     public void SetWeapon(GunLogic Weapon)
     {
-        m_Weapon = Instantiate(Weapon, Spinner);
+        Instantiate(Weapon, Spinner);
+        m_Weapon = Weapon;
     }
 
     void OnDrawGizmos()

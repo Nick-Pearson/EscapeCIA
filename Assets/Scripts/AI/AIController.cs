@@ -238,7 +238,7 @@ public class AIController : ControllerBase
         if (!PickupPrefab || !m_CurrentWeapon) return;
 
         WeaponPickup Pickup = Instantiate(PickupPrefab, transform.position, Quaternion.identity);
-        Pickup.SetWeapon(m_CurrentWeapon);
+        Pickup.SetWeapon(EquippedWeapon);
     }
 
 

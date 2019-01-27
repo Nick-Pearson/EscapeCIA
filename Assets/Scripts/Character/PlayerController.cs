@@ -58,6 +58,9 @@ public class PlayerController : ControllerBase
 
         m_AudioSource = GetComponent<AudioSource>();
 
+        GameDataManager data = FindObjectOfType<GameDataManager>();
+        AvailableWeapons = data.GetPlayerWeapons();
+
         SwitchWeaponTo(null);
         SwitchWeapon();
 
@@ -138,6 +141,11 @@ public class PlayerController : ControllerBase
         UpdateWeapons();
 
         UpdateInteractableState();
+
+        if(Input.GetButton("Pause"))
+        {
+            m_UIManager.PauseGame();
+        }
 
         // Calculate actual motion
         m_CurrentMovementOffset = (m_MovementDirection * m_MovementSpeed  + new Vector3(0, VerticalSpeed, 0)) * Time.deltaTime;
