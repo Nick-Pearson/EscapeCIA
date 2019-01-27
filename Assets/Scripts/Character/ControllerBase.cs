@@ -4,6 +4,7 @@ using UnityEngine;
 
 // Common base class for the player and enemy controllers
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController))]
 public abstract class ControllerBase : MonoBehaviour
 {
     // The gravity strength
@@ -49,7 +50,19 @@ public abstract class ControllerBase : MonoBehaviour
     {
         get { return m_IsRunning; }
     }
-    
+
+    // Ammo
+    public struct AmmoStore
+    {
+        public int Ammo;
+        public int AmmoPerClip;
+    };
+
+    public AmmoStore[] Ammo = new AmmoStore[(int)AmmoType.MAX];
+
+    public delegate void AmmoChanged(int Amount);
+    public event AmmoChanged OnAmmoChanged;
+
     protected GunLogic m_CurrentWeapon;
 
     protected UIManager m_UIManager;
@@ -59,6 +72,8 @@ public abstract class ControllerBase : MonoBehaviour
         m_CharacterController = GetComponent<CharacterController>();
 
         GetComponent<Health>().OnDied += OnDied;
+
+        InitialiseAmmo();
     }
 
     void Start()
@@ -79,6 +94,18 @@ public abstract class ControllerBase : MonoBehaviour
     protected abstract void UpdateController();
 
     // --------------------------------------------------------------
+
+    void InitialiseAmmo()
+    {
+        Ammo[(int)AmmoType.Bullet].AmmoPerClip = 8;
+        Ammo[(int)AmmoType.Rocket].AmmoPerClip = 2;
+
+        for(int i = 0; i < (int)AmmoType.MAX; ++i)
+        {
+            Ammo[i].Ammo = Ammo[i].AmmoPerClip;
+        }
+    }
+
     void ApplyGravity()
     {
         if (CharacterController.isGrounded) return;
@@ -120,6 +147,7 @@ public abstract class ControllerBase : MonoBehaviour
         if (Weapon)
         {
             m_CurrentWeapon = Instantiate<GunLogic>(Weapon, GunParent, false);
+            m_CurrentWeapon.SetOwner(this);
         }
         else
         {
@@ -132,16 +160,42 @@ public abstract class ControllerBase : MonoBehaviour
 
     protected virtual void OnCurrentWeaponChanged() { }
 
-    void OnDied()
+    protected virtual void OnDied()
     {
         if(CorpsePrefab)
         {
             GameObject Corpse = Instantiate(CorpsePrefab, transform.position, transform.rotation);
+
             Rigidbody rb = Corpse.GetComponent<Rigidbody>();
-            if(rb != null)
+            
+            if(rb)
             {
                 rb.AddForce(transform.forward * -1.0f, ForceMode.VelocityChange);
             }
         }
+    }
+
+    public int GetAmmo(AmmoType Type)
+    {
+        if (Type == AmmoType.MAX) return 0;
+
+        return Ammo[(int)Type].Ammo;
+    }
+
+    public int GetClipSize(AmmoType Type)
+    {
+        if (Type == AmmoType.MAX) return 0;
+
+        return Ammo[(int)Type].AmmoPerClip;
+    }
+
+    public void ModifyAmmo(AmmoType Type, int Amount = -1)
+    {
+        if (Type == AmmoType.MAX) return;
+        
+        Ammo[(int)Type].Ammo = Mathf.Clamp(Ammo[(int)Type].Ammo + Amount, 0, Ammo[(int)Type].AmmoPerClip);
+
+        if (OnAmmoChanged != null)
+            OnAmmoChanged.Invoke(Amount);
     }
 }

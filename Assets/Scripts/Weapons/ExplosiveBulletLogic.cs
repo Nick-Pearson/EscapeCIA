@@ -8,6 +8,8 @@ public class ExplosiveBulletLogic : BulletLogic
     [SerializeField]
     GameObject m_ExplosionPE;
 
+    public float ExplosionNoise = 45.0f;
+
     protected override void Explode()
     {
         if (!m_ExplosionPE) return;
@@ -17,7 +19,7 @@ public class ExplosiveBulletLogic : BulletLogic
         AIManager Manager = GameObject.FindObjectOfType<AIManager>();
         if (Manager)
         {
-            Manager.ReportNoiseEvent(transform.position, 45.0f);
+            Manager.ReportNoiseEvent(transform.position, ExplosionNoise);
         }
     }
 }

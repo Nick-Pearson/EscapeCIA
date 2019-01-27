@@ -17,11 +17,7 @@ public class NavigateTo : Task
 
     public override void UpdateTask(float deltaTime, ref Hashtable data)
     {
-        Vector3 toWaypoint = m_Transform.position - m_Target;
-        toWaypoint.y = 0.0f;
-
-        float distanceToWaypoint = toWaypoint.sqrMagnitude;
-        if(distanceToWaypoint < 0.2f)
+        if(m_Agent.remainingDistance < 0.2f)
         {
             MarkCompleted(true);
         }

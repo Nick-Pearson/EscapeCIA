@@ -25,6 +25,15 @@ public class UIManager : MonoBehaviour
 
     [SerializeField]
     GameObject m_DieScreen;
+        
+    [SerializeField]
+    GameObject m_UnlockScreen;
+
+    [SerializeField]
+    Text m_UnlockName;
+
+    [SerializeField]
+    Text m_UnlockDesc;
 
     public AudioClip TutorialSound;
 
@@ -58,6 +67,10 @@ public class UIManager : MonoBehaviour
         }
 
         PlayerHealth.OnDied += () => StartCoroutine(PlayerDied());
+
+        PlayerController PC = Player.GetComponent<PlayerController>();
+        PC.OnAmmoChanged += (amount) => UpdateWeaponText();
+        PC.OnWeaponUnlocked += OnWeaponUnlocked;
 
         m_AudioSource = GetComponent<AudioSource>();
     }
@@ -104,11 +117,6 @@ public class UIManager : MonoBehaviour
     {
         m_CurrentWeapon = newWeapon;
         UpdateWeaponText();
-
-        if (newWeapon != null)
-        {
-            newWeapon.OnAmmoChanged += UpdateWeaponText;
-        }
     }
 
     void UpdateWeaponText()
@@ -165,5 +173,22 @@ public class UIManager : MonoBehaviour
     {
         yield return new WaitForSeconds(3.0f);
         m_DieScreen.SetActive(true);
+    }
+
+
+    // --------------------------------------------------------------
+
+    void OnWeaponUnlocked(GunLogic Weapon)
+    {
+        m_UnlockName.text = Weapon.DisplayName;
+        m_UnlockDesc.text = Weapon.Description;
+        m_UnlockScreen.SetActive(true);
+        Time.timeScale = 0.0f;
+    }
+
+    public void CloseUnlockScreen()
+    {
+        m_UnlockScreen.SetActive(false);
+        Time.timeScale = 1.0f;
     }
 }

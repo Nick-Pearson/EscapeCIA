@@ -2,9 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum AmmoType
+{
+    Bullet = 0,
+    Rocket,
+
+    MAX
+}
+
 public class GunLogic : MonoBehaviour
 {
+    // Unique ID for this weapon
+    public string WeaponID;
+
     public string DisplayName;
+
+    public string Description;
 
     // The Bullet Prefab
     [SerializeField]
@@ -32,13 +45,16 @@ public class GunLogic : MonoBehaviour
     // The AudioSource to play Sounds for this object
     AudioSource m_AudioSource;
 
-    public int AmmoPerClip;
+    public AmmoType AmmoType;
 
-    int m_CurrentAmmo = 100;
-    public int CurrentAmmo {
-        get {
-            return m_CurrentAmmo;
-        }
+    public int AmmoPerClip
+    {
+        get { return m_OwningCharacter.GetClipSize(AmmoType); }
+    }
+    
+    public int CurrentAmmo
+    {
+        get { return m_OwningCharacter.GetAmmo(AmmoType); }
     }
 
     [SerializeField]
@@ -52,14 +68,12 @@ public class GunLogic : MonoBehaviour
 
     AIManager m_AIManager;
 
-    public delegate void AmmoChanged();
-    public event AmmoChanged OnAmmoChanged;
+    ControllerBase m_OwningCharacter;
 
     // Use this for initialization
     void Awake ()
     {
         m_AudioSource = GetComponent<AudioSource>();
-        m_CurrentAmmo = AmmoPerClip;
 
         m_AIManager = FindObjectOfType<AIManager>();
     }
@@ -74,14 +88,19 @@ public class GunLogic : MonoBehaviour
             {
                 m_CanShoot = true;
                 if (m_ProjectileModel != null)
-                    m_ProjectileModel.SetActive(m_CurrentAmmo > 0);
+                    m_ProjectileModel.SetActive(CurrentAmmo > 0);
             }
         }
     }
 
+    public void SetOwner(ControllerBase Owner)
+    {
+        m_OwningCharacter = Owner;
+    }
+
     public virtual void Fire()
     {
-        if (!m_CanShoot || m_CurrentAmmo <= 0 || !ProjectilePrefab) return;
+        if (!m_CanShoot || CurrentAmmo <= 0 || !ProjectilePrefab) return;
 
         m_CanShoot = false;
         if (m_ProjectileModel != null)
@@ -90,10 +109,7 @@ public class GunLogic : MonoBehaviour
         m_ShotCooldown = TimeBetweenShots;
 
         // Reduce the Ammo count
-        --m_CurrentAmmo;
-
-        if (OnAmmoChanged != null)
-            OnAmmoChanged.Invoke();
+        m_OwningCharacter.ModifyAmmo(AmmoType);
 
         // Create the Projectile from the Bullet Prefab
         Instantiate(ProjectilePrefab, m_BulletSpawnPoint.position, transform.rotation * ProjectilePrefab.transform.rotation);
@@ -119,20 +135,5 @@ public class GunLogic : MonoBehaviour
                 Particles[i].Play();
             }
         }
-    }
-
-    public void AddAmmo(int AmmoChange)
-    {
-        m_CurrentAmmo += AmmoChange;
-        if(m_CurrentAmmo > AmmoPerClip)
-        {
-            m_CurrentAmmo = AmmoPerClip;
-        }
-        
-        if (OnAmmoChanged != null)
-            OnAmmoChanged.Invoke();
-
-        if (m_ProjectileModel != null)
-            m_ProjectileModel.SetActive(m_CanShoot && m_CurrentAmmo > 0);
     }
 }

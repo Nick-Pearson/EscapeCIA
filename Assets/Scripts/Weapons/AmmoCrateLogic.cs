@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class AmmoCrateLogic : MonoBehaviour
 {
-    [SerializeField]
-    int m_BulletAmmo = 50;
-
+    public AmmoType Type;
+    public int Amount = 50;
+    
     void OnTriggerEnter(Collider other)
     {
-        GunLogic gunLogic = other.GetComponentInChildren<GunLogic>();
-        if(gunLogic)
+        ControllerBase Controller = other.GetComponent<ControllerBase>();
+        if(Controller)
         {
-            gunLogic.AddAmmo(m_BulletAmmo);
+            Controller.ModifyAmmo(Type, Amount);
             Destroy(gameObject);
         }
     }

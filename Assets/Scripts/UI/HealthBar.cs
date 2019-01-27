@@ -26,7 +26,7 @@ public class HealthBar : MonoBehaviour
 
     protected UIManager m_UIManager;
 
-    private List<Image> m_Sprites = new List<Image>();
+    private List<Image> m_Sprites;
     
     // cached component ref
     protected RectTransform m_RectTransform;
@@ -42,6 +42,7 @@ public class HealthBar : MonoBehaviour
         m_RectTransform = GetComponent<RectTransform>();
         m_IconWidth = IconPrefab.GetComponent<RectTransform>().sizeDelta.x;
         m_Camera = FindObjectOfType<Camera>();
+        m_Sprites = new List<Image>();
     }
 
     // Use this for initialization

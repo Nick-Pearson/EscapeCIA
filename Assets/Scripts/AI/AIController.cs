@@ -68,6 +68,10 @@ public class AIController : ControllerBase
 
     public Interactable TakedownInteractable;
 
+    public WeaponPickup PickupPrefab;
+
+    Vector3 m_StartLoc;
+
     // --------------------------------------------------------------
     // Use this for initialization
     protected override void InitController()
@@ -83,6 +87,8 @@ public class AIController : ControllerBase
         m_Player = GameObject.FindWithTag("Player");
         
         TakedownInteractable.OnInteract += InstantDeath;
+
+        m_StartLoc = transform.position;
 
         SetAlertState(AlertStates.Unaware, true);
         
@@ -149,7 +155,8 @@ public class AIController : ControllerBase
 
     bool CanSeePlayer()
     {
-        Vector3 PlayerVector = m_Player.transform.position - transform.position;
+        Vector3 EyePos = transform.position + (Vector3.up * 0.5f);
+        Vector3 PlayerVector = m_Player.transform.position - EyePos;
         float distSqrd = PlayerVector.sqrMagnitude;
 
         if (distSqrd > (MaxViewDist * MaxViewDist)) return false;
@@ -160,7 +167,7 @@ public class AIController : ControllerBase
 
         if (Ang > ViewAngle) return false;
 
-        Ray ray = new Ray(transform.position, PlayerVector);
+        Ray ray = new Ray(EyePos, PlayerVector);
         RaycastHit hit;
         if(Physics.Raycast(ray, out hit, MaxViewDist))
         {
@@ -182,7 +189,7 @@ public class AIController : ControllerBase
     {
         if(Patrol.Length == 0)
         {
-            m_Behaviour.data["Waypoint"] = transform.position;
+            m_Behaviour.data["Waypoint"] = m_StartLoc;
             m_Behaviour.data["Delay"] = 100.0f;
             return;
         }
@@ -222,6 +229,16 @@ public class AIController : ControllerBase
     {
         if(m_CurrentWeapon)
             m_CurrentWeapon.Fire();
+    }
+
+    protected override void OnDied()
+    {
+        base.OnDied();
+
+        if (!PickupPrefab || !m_CurrentWeapon) return;
+
+        WeaponPickup Pickup = Instantiate(PickupPrefab, transform.position, Quaternion.identity);
+        Pickup.SetWeapon(m_CurrentWeapon);
     }
 
 

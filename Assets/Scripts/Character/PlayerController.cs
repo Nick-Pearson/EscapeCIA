@@ -27,9 +27,14 @@ public class PlayerController : ControllerBase
 
     public GunLogic[] AvailableWeapons;
 
+    public delegate void WeaponUnlocked(GunLogic Weapon);
+    public event WeaponUnlocked OnWeaponUnlocked;
 
     public float PainSoundProbability = 0.5f;
     public AudioClip[] PainSounds;
+
+    public AudioClip GainAmmoSound;
+    public AudioClip UnlockSound;
 
     int m_CurrentWeaponIdx;
 
@@ -54,6 +59,9 @@ public class PlayerController : ControllerBase
         m_AudioSource = GetComponent<AudioSource>();
 
         SwitchWeaponTo(null);
+        SwitchWeapon();
+
+        OnAmmoChanged += OnAmmoChange;
     }
 
     void UpdateMovementState()
@@ -99,13 +107,13 @@ public class PlayerController : ControllerBase
 
     void SwitchWeapon()
     {
-        SwitchWeaponTo(AvailableWeapons[m_CurrentWeaponIdx]);
-
         ++m_CurrentWeaponIdx;
-        if(m_CurrentWeaponIdx >= AvailableWeapons.Length)
+        if (m_CurrentWeaponIdx >= AvailableWeapons.Length)
         {
             m_CurrentWeaponIdx = 0;
         }
+
+        SwitchWeaponTo(AvailableWeapons[m_CurrentWeaponIdx]);
     }
 
     // Update is called once per frame
@@ -117,6 +125,8 @@ public class PlayerController : ControllerBase
             UpdateRespawnTime();
             return;
         }
+
+        if (Time.timeScale < 0.1f) return;
 
         // Update movement input
         UpdateMovementState();
@@ -213,5 +223,44 @@ public class PlayerController : ControllerBase
             return;
 
         m_AudioSource.PlayOneShot(PainSounds[Random.Range(0, PainSounds.Length)]);
+    }
+
+    public bool IsWeaponUnlocked(GunLogic Weapon)
+    {
+        foreach(GunLogic w in AvailableWeapons)
+        {
+            if (w.WeaponID == Weapon.WeaponID) return true;
+        }
+
+        return false;
+    }
+
+    public void UnlockWeapon(GunLogic Weapon)
+    {
+        if (IsWeaponUnlocked(Weapon)) return;
+
+        List<GunLogic> NewAvailableWeapons = new List<GunLogic>();
+        NewAvailableWeapons.AddRange(AvailableWeapons);
+        NewAvailableWeapons.Add(Weapon);
+
+        AvailableWeapons = NewAvailableWeapons.ToArray();
+
+        if(UnlockSound && m_AudioSource)
+        {
+            m_AudioSource.PlayOneShot(UnlockSound);
+        }
+
+        if (OnWeaponUnlocked != null)
+            OnWeaponUnlocked.Invoke(Weapon);
+    }
+
+    void OnAmmoChange(int Amount)
+    {
+        if (Amount < 0) return;
+        
+        if (GainAmmoSound && m_AudioSource)
+        {
+            m_AudioSource.PlayOneShot(GainAmmoSound);
+        }
     }
 }

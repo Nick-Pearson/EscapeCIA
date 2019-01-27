@@ -51,7 +51,7 @@ public class MoveIntoRange : Task
 
         TargetDist = (float)data[m_RangePropertyName] * 0.8f;
 
-        Vector3 toTarget = m_Transform.position - Target;
+        Vector3 toTarget = m_Transform.position - (Vector3)data[m_TargetPropertyName];
         toTarget.y = 0.0f;
 
         float distanceToTarget = toTarget.sqrMagnitude;
