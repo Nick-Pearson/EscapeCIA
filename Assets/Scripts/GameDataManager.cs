@@ -224,10 +224,10 @@ public class GameDataManager : MonoBehaviour
 
         int Total = 0;
         Total += levelInfo.Length * (1 + AllMedals.Length);
-        Total += AllWeapons.Length;
+        Total += AllWeapons.Length - 1;
 
         int Value = 0;
-        Value += m_Data.PlayerWeapons.Length;
+        Value += m_Data.PlayerWeapons.Length - 1;
 
         foreach (LevelInfo info in levelInfo)
         {

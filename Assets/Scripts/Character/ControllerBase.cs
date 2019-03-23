@@ -161,16 +161,16 @@ public abstract class ControllerBase : MonoBehaviour
 
     protected virtual void OnDied()
     {
-        if(CorpsePrefab)
-        {
-            GameObject Corpse = Instantiate(CorpsePrefab, transform.position, transform.rotation);
+        if (!CorpsePrefab) return;
 
-            Rigidbody rb = Corpse.GetComponent<Rigidbody>();
-            
-            if(rb)
-            {
-                rb.AddForce(transform.forward * -1.0f, ForceMode.VelocityChange);
-            }
+        GameObject Corpse = Instantiate(CorpsePrefab, transform.position, transform.rotation);
+        Corpse.transform.localScale = transform.localScale;
+
+        Rigidbody rb = Corpse.GetComponent<Rigidbody>();
+
+        if (rb)
+        {
+            rb.AddForce(transform.forward * -1.0f, ForceMode.VelocityChange);
         }
     }
 

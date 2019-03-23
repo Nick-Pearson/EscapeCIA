@@ -16,7 +16,8 @@ public class SSHealthBar : HealthBar
 
   // stored as a value so that the UI remains at the correct location if the target is destroyed
   private Vector3 targetPosition;
-    
+
+  private Canvas parentCanvas;
 
 	// Use this for initialization
 	public override void Initialise (Health inHealthComp, UIManager inUIManager)
@@ -24,6 +25,7 @@ public class SSHealthBar : HealthBar
         base.Initialise(inHealthComp, inUIManager);
         timeUntilFadeOut = lifetime;
 
+        parentCanvas = GetComponentInParent<Canvas>();
 	}
 
 	public override void UpdateHealthDisplay()
@@ -52,6 +54,6 @@ public class SSHealthBar : HealthBar
 
         // project this UI onto the screen
         Vector3 screenPos = m_Camera.WorldToScreenPoint(targetPosition + new Vector3(0.0f, 2.0f, 0.0f));
-        m_RectTransform.anchoredPosition = new Vector2(screenPos.x, screenPos.y);
+        m_RectTransform.anchoredPosition = new Vector2(screenPos.x / parentCanvas.scaleFactor, screenPos.y / parentCanvas.scaleFactor);
     }
 }
